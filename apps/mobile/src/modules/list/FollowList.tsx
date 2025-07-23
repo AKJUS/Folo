@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query"
 import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import { Alert, StyleSheet, Text, View } from "react-native"
+import { Alert, StyleSheet, View } from "react-native"
 import { z } from "zod"
 
 import { HeaderSubmitTextButton } from "@/src/components/layouts/header/HeaderElements"
@@ -23,6 +23,7 @@ import { TextField } from "@/src/components/ui/form/TextField"
 import { GroupedInsetListCard } from "@/src/components/ui/grouped/GroupedList"
 import { IconWithFallback } from "@/src/components/ui/icon/fallback-icon"
 import { PlatformActivityIndicator } from "@/src/components/ui/loading/PlatformActivityIndicator"
+import { Text } from "@/src/components/ui/typography/Text"
 import { PowerIcon } from "@/src/icons/power"
 import { useNavigation, useScreenIsInSheetModal } from "@/src/lib/navigation/hooks"
 import { useSetModalScreenOptions } from "@/src/lib/navigation/ScreenOptionsContext"
@@ -36,10 +37,12 @@ export const FollowList = (props: { id: string }) => {
   const list = useListById(id)
   const { isLoading } = useQuery({
     queryKey: ["list", id],
-    queryFn: () => listSyncServices.fetchListById({ id }),
+    queryFn: () =>
+      listSyncServices.fetchListById({
+        id,
+      }),
     enabled: !list,
   })
-
   if (isLoading) {
     return (
       <View className="mt-24 flex-1 flex-row items-start justify-center">
@@ -47,26 +50,21 @@ export const FollowList = (props: { id: string }) => {
       </View>
     )
   }
-
   return <Impl id={id} />
 }
-
 const formSchema = z.object({
   view: z.number(),
   isPrivate: z.boolean(),
   hideFromTimeline: z.boolean().optional(),
   title: z.string().optional(),
 })
-
 const Impl = (props: { id: string }) => {
   const { t } = useTranslation()
   const { t: tCommon } = useTranslation("common")
   const { id } = props
   const list = useListById(id)
-
   const subscription = useSubscriptionByListId(id)
   const isSubscribed = !!subscription
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -77,27 +75,22 @@ const Impl = (props: { id: string }) => {
     },
   })
   const { isValid, isDirty } = form.formState
-
   const isModal = useScreenIsInSheetModal()
   const navigation = useNavigation()
   const submit = async () => {
     if (!list) return
     const payload = form.getValues()
-
     const subscribeOrUpdate = async () => {
       const body = {
         listId: list.id,
         view: list.view,
-
         isPrivate: payload.isPrivate,
         title: payload.title,
         hideFromTimeline: payload.hideFromTimeline,
-
         url: undefined,
         category: undefined,
         feedId: undefined,
       }
-
       if (isSubscribed) {
         await subscriptionSyncService.edit({
           ...subscription,
@@ -106,7 +99,6 @@ const Impl = (props: { id: string }) => {
       } else {
         await subscriptionSyncService.subscribe(body)
       }
-
       if (isModal) {
         navigation.dismiss()
       } else {
@@ -136,20 +128,16 @@ const Impl = (props: { id: string }) => {
       subscribeOrUpdate()
     }
   }
-
   const isLoading = false
-
   const setModalOptions = useSetModalScreenOptions()
   useEffect(() => {
     setModalOptions({
       gestureEnabled: !isDirty,
     })
   }, [isDirty, setModalOptions])
-
   if (!list) {
     return null
   }
-
   return (
     <SafeNavigationScrollView
       className="bg-system-grouped-background"
@@ -262,7 +250,6 @@ const Impl = (props: { id: string }) => {
     </SafeNavigationScrollView>
   )
 }
-
 const styles = StyleSheet.create({
   title: {
     fontSize: 24,
