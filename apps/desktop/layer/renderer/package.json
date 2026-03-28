@@ -128,7 +128,7 @@
     "@types/node": "25.2.3",
     "@vite-pwa/assets-generator": "1.0.2",
     "fake-indexeddb": "6.2.5",
-    "happy-dom": "20.6.1",
+    "happy-dom": "20.8.8",
     "react-scan": "0.4.3",
     "typescript": "catalog:"
   }
